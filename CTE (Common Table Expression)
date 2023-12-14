@@ -1,0 +1,22 @@
+# here is a SQL query displaying the use of a common table expression to show the top 5 customers in each country
+
+WITH top_5_customers(customer_id, first_name, last_name, city, total_amount_paid) AS 
+(SELECT p.customer_id, c.first_name, c.last_name, ct.city, sum(p.amount) AS total_amount_paid
+FROM payment p
+INNER JOIN customer c ON p.customer_id= c.customer_id
+INNER JOIN address a ON c.address_id= a.address_id
+INNER JOIN city ct ON a.city_id= ct.city_id
+INNER JOIN country co ON ct.country_id= co.country_id
+WHERE city IN ('Aurora', 'Acua', 'Citrus Heights', 'Iwaki', 'Ambattur', 'Shanwei', 'So Leopoldo', 'Teboksary', 'Tianjin', 'Cianjur')
+GROUP BY p.customer_id, first_name, last_name, city
+ORDER BY sum(p.amount) DESC
+LIMIT 5) 
+SELECT co.country, COUNT(c.customer_id) AS all_customers_count, COUNT(top_5_customers) as top_customer_count
+FROM customer c
+INNER JOIN address a ON c.address_id= a.address_id
+INNER JOIN city ct ON a.city_id= ct.city_id
+INNER JOIN country co ON ct.country_id= co.country_id
+LEFT JOIN top_5_customers ON c.customer_id= top_5_customers.customer_id
+GROUP BY country
+ORDER BY all_customers_count DESC
+LIMIT 5;
